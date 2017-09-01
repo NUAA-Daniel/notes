@@ -1,6 +1,38 @@
-### 一、规划并创建用户
-### 二、安装
-  #### 1.gcc
-  #### 2.pcre库
-  #### 3.zlib
-  #### 4.libtool
+一、规划并创建用户
+二、安装所需库
+1.gcc
+2.pcre
+3.zlib
+4.libtool
+三、编译安装
+1.注释nginx/auto/cc/gcc文件176行，取消debug功能
+2.修改nginx/src/http/ngx_http_header_module.c文件，修改版本头信息：
+49 static char ngx_http_server_string[] = "Server: SuNing Web Server" CRLF;
+50 static char ngx_http_server_full_string[] = "Server: SuNing Web Server" CRLF;
+但仍需从新定制404页面
+3.# ./configure --prefix=/usr/local/nginx --with-[modules]
+  # make; make install
+四、Nginx主配置
+1.配置工作线程与内核: worker_cpu_affinity, worker_processes
+  use epoll; #Linux必须使用epoll多路复用模型
+  worker_connections
+2.禁止显示Nginx版本号，禁用默认日志
+3.配置压缩
+4.证书配置
+5.server location配置，如根路径，访问日志，默认首页，及浏览器缓存时间等
+6.配置NginxStatus做相应的访问限制
+7.定制404/403错误页面
+8.配置反向代理
+五、日志分割
+由于Nginx不能按时间分割日志，所以根据Apache日志分割原则通过crontab定时运行脚本实现日志分割
+六、优化内核及网络设置
+七、简单操作
+1.启动服务
+/opt/nginx/sbin/nginx
+2.检查配置
+/opt/nginx/sbin/nginx -t
+输出：test is successful则无误
+3.要修改后配置生效
+/opt/nginx/sbin/nginx -s reload
+4.停止服务
+/opt/nginx/sbin/nginx -s stop
