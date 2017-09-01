@@ -1,0 +1,11 @@
+一、用户规划
+二、优化参数
+1.修改open files参数（需重启生效）
+2.修改网络参数
+3./etc/resolv.conf文件里配置DNS服务器地址
+4.修改hosts，主机名格式一定要正确
+三、安装与配置
+1.脱机JVM参数在文件/opt/jboss/bin/standalone.conf中配置
+  cluster模式的JVM参数在控制台配置
+2.控制台配置：线程池，创建MQ，创建数据源
+四、应用发布也在控制台进行
