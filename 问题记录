@@ -1,1 +1,4 @@
-
+1.was配置中的连接工厂什么意思？
+  JMS：https://zhidao.baidu.com/question/2079246747093598908.html
+  WebSphere MQ 队列连接工厂用于与 WebSphere MQ 所提供队列建立 JMS 连接，以进行点到点消息传递
+2.连接工厂ccsid
