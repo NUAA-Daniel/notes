@@ -1,0 +1,111 @@
+1.ngx_str_t
+typedef struct {
+    size_t      len;
+    u_char     *data;
+} ngx_str_t;
+在结构体当中，data指向字符串数据的第一个字符，字符串的结束用长度来表示，而不是由’\0’来表示结束
+所以，在写nginx代码时，处理字符串的方法跟我们平时使用有很大的不一样
+但要时刻记住，字符串不以’\0’结束，尽量使用nginx提供的字符串操作的api来操作字符串。
+
+ngx_pool_t
+typedef struct ngx_pool_s        ngx_pool_t;
+
+struct ngx_pool_s {
+    ngx_pool_data_t       d;
+    size_t                max;
+    ngx_pool_t           *current;
+    ngx_chain_t          *chain;
+    ngx_pool_large_t     *large;
+    ngx_pool_cleanup_t   *cleanup;
+    ngx_log_t            *log;
+};
+ngx_pool_t是一个非常重要的数据结构，提供了一种机制，帮助管理一系列的资源（如内存，文件等）
+使得对这些资源的使用和释放统一进行，免除了使用过程中考虑到对各种各样资源的什么时候释放，是否遗漏了释放的担心。
+
+ngx_array_t
+ngx_array_t是nginx内部使用的数组结构。
+nginx的数组结构在存储上与大家认知的C语言内置的数组有相似性
+比如实际上存储数据的区域也是一大块连续的内存。
+但是数组除了存储数据的内存以外还包含一些元信息来描述相关的一些信息。
+typedef struct ngx_array_s       ngx_array_t;
+struct ngx_array_s {
+    void        *elts;  //实际数据存储区域
+    ngx_uint_t   nelts; //数组实际元素个数
+    size_t       size;  //数组单个元素大小，字节为单位
+    ngx_uint_t   nalloc;  //数组容量，表示该数组在不引发扩容的前提下，可以最多存储的元素的个数
+                            当nelts增长到达nalloc 时，如果再往此数组中存储元素，则会引发数组的扩容。
+                            数组的容量将会扩展到原有容量的2倍大小。
+                            实际上是分配新的一块内存，新的一块内存的大小是原有内存大小的2倍。
+                            原有的数据会被拷贝到新的一块内存中。
+    ngx_pool_t  *pool;  //分配内存的内存池
+};
+
+ngx_hash_t
+ngx_hash_t是nginx自己的hash表的实现。
+定义和实现位于src/core/ngx_hash.h|c中。
+ngx_hash_t的实现也与数据结构教科书上所描述的hash表的实现是大同小异。
+对于常用的解决冲突的方法有线性探测，二次探测和开链法等。
+ngx_hash_t使用的是最常用的一种，也就是开链法，这也是STL中的hash表使用的方法。
+但又有一些显著特点：
+1.ngx_hash_t不像其他的hash表的实现，可以插入删除元素，它只能一次初始化，
+就构建起整个hash表以后，既不能再删除，也不能在插入元素了。
+2.ngx_hash_t的开链并不是真的开了一个链表，实际上是开了一段连续的存储空间，几乎可以看做是一个数组。
+这是因为ngx_hash_t在初始化的时候，会经历一次预计算的过程，
+提前把每个桶里面会有多少元素放进去给计算出来，这样就提前知道每个桶的大小了。
+那么就不需要使用链表，一段连续的存储空间就足够了。这也从一定程度上节省了内存的使用。
+
+ngx_hash_wildcard_t
+nginx为了处理带有通配符的域名的匹配问题，实现了ngx_hash_wildcard_t这样的hash表。
+他可以支持两种类型的带有通配符的域名。
+一种是通配符在前的，例如：“*.abc.com”，也可以省略掉星号，直接写成”.abc.com”。
+这样的key，可以匹配www.abc.com，qqq.www.abc.com之类的。
+另外一种是通配符在末尾的，例如：“mail.xxx.*”，请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉。
+这样的通配符，可以匹配mail.xxx.com、mail.xxx.com.cn、mail.xxx.net之类的域名。
+
+ngx_hash_combined_t
+从其定义显见，该类型实际上包含了三个hash表，一个普通hash表，一个包含前向通配符的hash表和一个包含后向通配符的hash表。
+nginx提供该类型的作用，在于提供一个方便的容器包含三个类型的hash表，当有包含通配符的和不包含通配符的一组key构建hash表以后，以一种方便的方式来查询
+
+ngx_hash_key_arrays_t
+有一组key，这些里面既有无通配符的key，也有包含通配符的key的时候。
+我们就需要构建三个hash表，一个包含普通的key的hash表，一个包含前向通配符的hash表，一个包含后向通配符的hash表
+
+ngx_chain_t
+typedef struct ngx_chain_s       ngx_chain_t;
+
+struct ngx_chain_s {
+    ngx_buf_t    *buf;
+    ngx_chain_t  *next;
+};
+nginx的filter模块在处理从别的filter模块或者是handler模块传递过来的数据
+（实际上就是需要发送给客户端的http response）。
+这个传递过来的数据是以一个链表的形式(ngx_chain_t)。
+而且数据可能被分多次传递过来。也就是多次调用filter的处理函数，以不同的ngx_chain_t。
+
+ngx_buf_t
+ngx_buf_t就是这个ngx_chain_t链表的每个节点的实际数据。
+该结构实际上是一种抽象的数据结构，它代表某种具体的数据。
+这个数据可能是指向内存中的某个缓冲区，也可能指向一个文件的某一部分，
+也可能是一些纯元数据（元数据的作用在于指示这个链表的读取者对读取的数据进行不同的处理）。
+
+ngx_list_t
+typedef struct {
+    ngx_list_part_t  *last;
+    ngx_list_part_t   part;
+    size_t            size;
+    ngx_uint_t        nalloc;
+    ngx_pool_t       *pool;
+} ngx_list_t;
+ngx_list_t顾名思义，看起来好像是一个list的数据结构。
+这样的说法，算对也不算对。因为它符合list类型数据结构的一些特点，
+比如可以添加元素，实现自增长，不会像数组类型的数据结构，受到初始设定的数组容量的限制，
+并且它跟我们常见的list型数据结构也是一样的，内部实现使用了一个链表。
+
+ngx_queue_t
+ngx_queue_t是nginx中的双向链表
+
+typedef struct ngx_queue_s ngx_queue_t;
+struct ngx_queue_s {
+    ngx_queue_t  *prev;
+    ngx_queue_t  *next;
+};
