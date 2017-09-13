@@ -8,8 +8,8 @@ typedef struct {
 但要时刻记住，字符串不以’\0’结束，尽量使用nginx提供的字符串操作的api来操作字符串。
 
 ngx_pool_t
-typedef struct ngx_pool_s        ngx_pool_t;
 
+typedef struct ngx_pool_s        ngx_pool_t;
 struct ngx_pool_s {
     ngx_pool_data_t       d;
     size_t                max;
