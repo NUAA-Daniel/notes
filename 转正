@@ -33,7 +33,7 @@ BrowserMatch ^Mozilla/4 gzip-only-text/html
 
 	apachectl 配置文件
 	测试配置文件
-	apachectl -t
+	apachectl -t/httpd -t
 
 	平滑重启
 	apachectl -k graceful
@@ -53,6 +53,10 @@ BrowserMatch ^Mozilla/4 gzip-only-text/html
 
 8、在和jboss联合的时候用了ajp，http协议。mod_cluster 开通的是6666端口。
 /mod_cluster_manager管理页面可以看和jboss联合的信息
+补充：456端口？
+在计算端口连接数时，一个port就是一个host，一个node就是一个server节点
+通过横向分组的方式实现分批发布，对机器上的server分组
+
 
 9、集群限制
 	<IfModule manager_module>
@@ -61,7 +65,12 @@ BrowserMatch ^Mozilla/4 gzip-only-text/html
 	  Maxhost 1000
 	  ProxyPreserveHost On
 
-三、jboss
+补充：URL/URI，Apache启动指定配置文件 使用-f选项
+安全基线，用户权限问题
+Apache启动可指定任意未被占用端口
+Apache与Nginx的rewrite规则
+
+三、jboss，配置重启生效
 1、jboss默认线程数是cpu*2，最大线程数是cpu*16
 
 2、杀javacore
@@ -72,7 +81,7 @@ BrowserMatch ^Mozilla/4 gzip-only-text/html
 	jmap -dump:format=b,file=heap.prof <pid>
 
 4、查看线程占用cpu
-	top -H
+	进入top后使用H开关thread信息收集
 
 	收集topCPU及javacore：
 	top -H -p <pid> -b -n1 >> dump_high_cpu.txt;/opt/jboss/java64/jdk1.7.0_25/bin/jstack <pid> > javacore.txt
@@ -83,6 +92,8 @@ BrowserMatch ^Mozilla/4 gzip-only-text/html
 	jboss-cli.sh -c
 	jboss-cli.sh --controller=host:port
 	注意这里的port：master 9990，slave 9999
+补充：Jboss从master进入时可不指定端口
+从普通机器进入需指定端口？（记忆模糊，未查询核验）
 
 四、redis
 1、redis端口6379，redis sentinel 26379
@@ -104,6 +115,10 @@ BrowserMatch ^Mozilla/4 gzip-only-text/html
 		> shutdown
 	服务器的从属信息
 		> info
+补充：启动Redis：PATH/redis-server configFileName
+config get/set 变量名（set新变量后需保持，不知道是否可以被称作变量）
+如何切换主从？
+如何更改主从模式？
 
 其他
 1、负载均衡算法
@@ -131,4 +146,17 @@ BrowserMatch ^Mozilla/4 gzip-only-text/html
 	>  大于(需要双括号),如:(("$a" > "$b"))
 	>=  大于等于(需要双括号),如:(("$a" >= "$b"))
 
-8、上线扩容注意的事项
+8、扩容规范与上线检查项
+
+
+WAS补充：杀Javacore kill -3
+网路：常见协议分处哪一层
+
+
+刘川风考题：
+redis守护进程
+Apache 启动
+一共三个填空
+ls和dir区别
+i++ 和++i区别
+nginx禁止访问
