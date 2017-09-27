@@ -1,0 +1,134 @@
+转正考试整理重点
+
+一、nginx
+1、nginx的分支有哪些？
+suengine Tengine
+
+2、nginx缓存项的含义
+proxy_cache_valid 200 304 2m;说明对于状态为200和304的缓存文件的缓存时间是2分钟，
+D, d m s
+
+3、nginx监控项没有outmemoryerror这一项！
+
+4、nginx的启停重新加载
+
+5、curl -I  只显示文档信息，相应头文件，相当于f12
+
+
+二、apache
+1、apache识别浏览器类型
+在location下面有
+BrowserMatch ^Mozilla/4 gzip-only-text/html
+
+2、目录访问权限
+<Directory  xxxxx>
+
+3、apache启停操作
+	httpd -k start
+	启动Apache服务。
+	httpd -k stop
+	停止Apache服务。
+	httpd -k restart
+	httpd -t
+
+	apachectl 配置文件
+	测试配置文件
+	apachectl -t
+
+	平滑重启
+	apachectl -k graceful
+
+4、Location /server-status，查看Apache状态的功能模块
+
+5、隐藏Apache的版本号及其他敏感信息
+	在httpd.conf配置文件中设置
+	ServerSignature Off
+	ServerTokens Prod
+
+6、禁止Apache显示目录结构
+	将Options Indexes FollowSymLinks中的Indexes 去掉，
+
+
+7、apache和jboss联合开了8109端口，所以8080端口流量就少了。
+
+8、在和jboss联合的时候用了ajp，http协议。mod_cluster 开通的是6666端口。
+/mod_cluster_manager管理页面可以看和jboss联合的信息
+
+9、集群限制
+	<IfModule manager_module>
+	  Listen 10.37.56.202:6666
+	  Maxnode 500
+	  Maxhost 1000
+	  ProxyPreserveHost On
+
+三、jboss
+1、jboss默认线程数是cpu*2，最大线程数是cpu*16
+
+2、杀javacore
+	jstack <pid> > javacore.txt
+	正常杀不了的话可以加 -f选项
+
+3、收集dump
+	jmap -dump:format=b,file=heap.prof <pid>
+
+4、查看线程占用cpu
+	top -H
+
+	收集topCPU及javacore：
+	top -H -p <pid> -b -n1 >> dump_high_cpu.txt;/opt/jboss/java64/jdk1.7.0_25/bin/jstack <pid> > javacore.txt
+
+5、jboss之前是按照group分组进行不影响业务的发布的
+
+6、jboss cli端启动
+	jboss-cli.sh -c
+	jboss-cli.sh --controller=host:port
+	注意这里的port：master 9990，slave 9999
+
+四、redis
+1、redis端口6379，redis sentinel 26379
+
+2、cli
+	redis-cli -h host -p port -a password
+
+3、启动 redis-server 配置文件
+	redis-sentinel 配置文件
+
+4、主从cli配置
+	slaveof 192.168.0.100 6379  
+	停主从 
+		> SLAVEOF NO ONE
+	保存数据
+		> SAVE 
+
+	停止redis
+		> shutdown
+	服务器的从属信息
+		> info
+
+其他
+1、负载均衡算法
+	随机（random）、轮训（round-robin）、一致哈希（consistent-hash）和主备（master-slave）。
+2、OSI七层模型
+	物理层、数据链路层、网络层、传输层、会话层、表示层、应用层
+
+3、ftp工作在应用层、两种传输模式，binary二进制和ASCII
+
+4、脚本传值 $1 $2 $3 $# $* $@
+
+5、大促期间处理无果要及时上报
+
+6、正则表达式 ^ $
+
+7、脚本编写
+	-eq     等于,如:if ["$a" -eq "$b" ]
+	-ne     不等于,如:if ["$a" -ne "$b" ]
+	-gt     大于,如:if ["$a" -gt "$b" ]
+	-ge    大于等于,如:if ["$a" -ge "$b" ]
+	-lt      小于,如:if ["$a" -lt "$b" ]
+	-le      小于等于,如:if ["$a" -le "$b" ]
+	<  小于(需要双括号),如:(("$a" < "$b"))
+	<=  小于等于(需要双括号),如:(("$a" <= "$b"))
+	>  大于(需要双括号),如:(("$a" > "$b"))
+	>=  大于等于(需要双括号),如:(("$a" >= "$b"))
+
+8、上线扩容注意的事项
