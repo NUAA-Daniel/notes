@@ -12,3 +12,5 @@ WAS分布式网络环境理解：https://www.ibm.com/developerworks/cn/websphere
 
 
 Nginx常见内部参数与错误总结：http://www.360doc.com/content/12/1024/11/1073512_243439687.shtml
+
+python爬虫http://python.jobbole.com/81332/
