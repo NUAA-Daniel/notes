@@ -19,3 +19,4 @@ python爬虫http://python.jobbole.com/81332/
 
 #解析html：https://www.cnblogs.com/hester/p/5420605.html
 #保持session连接：https://www.cnblogs.com/chenxiaohan/p/7654667.html
+#英语https://www.zhihu.com/question/19566985
